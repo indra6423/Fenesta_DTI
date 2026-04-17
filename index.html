@@ -41,6 +41,7 @@
   .stat-card .sub { font-size: 11px; color: #9ca3af; margin-top: 2px; }
   .stat-card.red .val { color: #b91c1c; }
   .stat-card.amber .val { color: #92400e; }
+  .stat-card.purple .val { color: #6d28d9; }
 
   /* BADGES */
   .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; display: inline-block; }
@@ -48,6 +49,9 @@
   .badge.progress { background: #fef3c7; color: #78350f; }
   .badge.done { background: #dcfce7; color: #14532d; }
   .badge.draft { background: #f3f4f6; color: #6b7280; }
+  .badge.npr { background: #ede9fe; color: #4c1d95; }
+  .badge.npr-approved { background: #d1fae5; color: #064e3b; }
+  .badge.npr-rejected { background: #fee2e2; color: #7f1d1d; }
 
   /* ORDER CARDS */
   .section-title { font-size: 11px; font-weight: 600; color: #9ca3af; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
@@ -56,10 +60,23 @@
   .order-card.on-hold { border-left: 3px solid #ef4444; }
   .order-card.in-progress { border-left: 3px solid #f59e0b; }
   .order-card.completed { border-left: 3px solid #22c55e; }
+  .order-card.npr-card { border-left: 3px solid #7c3aed; }
   .order-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
   .order-id { font-size: 13px; font-weight: 600; color: #111; }
   .order-customer { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
   .order-meta { display: flex; gap: 6px; align-items: center; font-size: 11px; color: #9ca3af; }
+
+  /* NPR ALERT */
+  .npr-alert { background: #faf5ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+  .npr-alert-title { font-size: 13px; font-weight: 600; color: #4c1d95; margin-bottom: 8px; }
+  .npr-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .npr-key { font-size: 11px; color: #7c3aed; }
+  .npr-val { font-size: 11px; color: #4c1d95; font-weight: 600; }
+
+  /* NPR DETAIL SECTION */
+  .npr-section { background: #faf5ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 13px 14px; margin-bottom: 14px; }
+  .npr-section-title { font-size: 12px; font-weight: 700; color: #4c1d95; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .npr-tag { background: #7c3aed; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; letter-spacing: .05em; }
 
   /* TIMELINE */
   .timeline { display: flex; align-items: center; overflow-x: auto; padding: 4px 0 10px; scrollbar-width: none; margin-bottom: 14px; }
@@ -70,6 +87,7 @@
   .tl-circle.hold { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
   .tl-circle.pending { background: #f9fafb; color: #9ca3af; border-color: #e5e7eb; }
   .tl-circle.active { background: #fef3c7; color: #78350f; border-color: #fcd34d; }
+  .tl-circle.npr { background: #ede9fe; color: #4c1d95; border-color: #c4b5fd; }
   .tl-label { font-size: 9px; color: #9ca3af; margin-top: 4px; white-space: nowrap; max-width: 46px; text-align: center; line-height: 1.2; }
   .tl-connector { flex: 1; height: 2px; background: #e5e7eb; min-width: 10px; flex-shrink: 0; }
   .tl-connector.done { background: #86efac; }
@@ -96,6 +114,8 @@
   .btn.danger { background: #fff5f5; color: #7f1d1d; border-color: #fecaca; }
   .btn.danger:hover { background: #fee2e2; }
   .btn.warn { background: #fffbeb; color: #78350f; border-color: #fcd34d; }
+  .btn.purple { background: #faf5ff; color: #4c1d95; border-color: #c4b5fd; }
+  .btn.purple:hover { background: #ede9fe; }
 
   /* FORM */
   .form-group { margin-bottom: 12px; }
@@ -120,6 +140,7 @@
   .d-stat { font-size: 11px; color: #9ca3af; }
   .d-stat span { font-weight: 600; color: #111; }
   .d-stat .red { color: #b91c1c; }
+  .d-stat .purple { color: #6d28d9; }
 
   /* SCORECARD */
   .score-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
@@ -152,6 +173,8 @@
   .filter-row::-webkit-scrollbar { display: none; }
   .filter-chip { font-size: 11px; padding: 5px 12px; border: 1px solid #e5e7eb; border-radius: 20px; white-space: nowrap; cursor: pointer; background: #fff; color: #6b7280; font-weight: 500; }
   .filter-chip.active { background: #f3f4f6; color: #111; border-color: #d1d5db; }
+  .filter-chip.npr-chip { border-color: #c4b5fd; color: #6d28d9; background: #faf5ff; }
+  .filter-chip.npr-chip.active { background: #ede9fe; border-color: #7c3aed; color: #4c1d95; }
 
   /* DIVIDER */
   .divider { height: 1px; background: #f3f4f6; margin: 14px 0; }
@@ -170,6 +193,9 @@
   .track-alert { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 12px 14px; margin-top: 8px; }
   .track-alert-title { font-size: 12px; font-weight: 600; color: #78350f; margin-bottom: 5px; }
   .track-alert-desc { font-size: 11px; color: #92400e; }
+
+  /* NPR TIMELINE special node */
+  .tl-circle.npr-review { background: #ede9fe; color: #4c1d95; border-color: #7c3aed; font-size: 10px; }
 </style>
 </head>
 <body>
@@ -190,6 +216,7 @@
     <button class="screen-tab" onclick="switchTab('dealer','opportunity')">New opportunity</button>
     <button class="screen-tab" onclick="switchTab('dealer','booking')">Order booking</button>
     <button class="screen-tab" onclick="switchTab('dealer','detail')">Order detail</button>
+    <button class="screen-tab" onclick="switchTab('dealer','npr-detail')">NPR detail</button>
   </div>
   <div class="phone-frame"><div class="phone">
 
@@ -198,19 +225,36 @@
       <div class="phone-header"><h2>My orders</h2><span style="font-size:12px;color:#9ca3af">Raj Sharma</span></div>
       <div class="phone-body">
         <div class="stat-row">
-          <div class="stat-card"><div class="lbl">Total orders</div><div class="val">42</div></div>
+          <div class="stat-card"><div class="lbl">Total orders</div><div class="val">45</div></div>
           <div class="stat-card red"><div class="lbl">On hold</div><div class="val">7</div><div class="sub">Action needed</div></div>
           <div class="stat-card amber"><div class="lbl">In progress</div><div class="val">18</div></div>
-          <div class="stat-card"><div class="lbl">Delivered</div><div class="val">17</div></div>
+          <div class="stat-card purple"><div class="lbl">NPR orders</div><div class="val">3</div><div class="sub">Pending review</div></div>
         </div>
         <div class="filter-row">
           <button class="filter-chip active">All</button>
           <button class="filter-chip">On hold</button>
           <button class="filter-chip">In progress</button>
           <button class="filter-chip">Delivered</button>
+          <button class="filter-chip npr-chip">NPR</button>
           <button class="filter-chip">This month</button>
         </div>
         <div class="section-title">Orders</div>
+
+        <!-- NPR Order Card -->
+        <div class="order-card npr-card" onclick="switchTab('dealer','npr-detail')">
+          <div class="order-row"><span class="order-id">ORD-2855</span><span class="badge npr">NPR</span></div>
+          <div class="order-customer">Rohit Saxena · Custom aluminium bay window</div>
+          <div class="order-meta">
+            <span>Created: 12 Apr 2025</span>
+            <span>·</span>
+            <span style="color:#7c3aed;font-weight:600">Under review</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid #f3f4f6;">
+            <span style="font-size:11px;color:#9ca3af;">Process owner: <span style="color:#4c1d95;font-weight:600">Ankit Gupta (Tech)</span></span>
+            <span class="sla-badge" style="background:#ede9fe;color:#4c1d95;">ETA: 20 Apr</span>
+          </div>
+        </div>
+
         <div class="order-card on-hold" onclick="switchTab('dealer','detail')">
           <div class="order-row"><span class="order-id">ORD-2841</span><span class="badge hold">On hold</span></div>
           <div class="order-customer">Priya Mehta · uPVC sliding</div>
@@ -252,7 +296,11 @@
         <div class="form-group"><div class="form-label">Product type</div>
           <select class="form-input"><option>uPVC windows</option><option>Aluminium windows</option><option>Sliding doors</option><option>Casement</option></select></div>
         <div class="form-group"><div class="form-label">Estimated quantity</div><input class="form-input" placeholder="No. of units" /></div>
-        <div class="form-group"><div class="form-label">Notes</div><input class="form-input" placeholder="Site requirements, preferences…" /></div>
+        <div class="toggle-row">
+          <span style="font-size:13px;font-weight:500">NPR / Custom product?</span>
+          <div class="toggle-pill" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="form-group" style="margin-top:10px;"><div class="form-label">Notes</div><input class="form-input" placeholder="Site requirements, preferences…" /></div>
         <button class="btn">Save as draft</button>
         <button class="btn primary">Convert to order →</button>
       </div>
@@ -285,7 +333,7 @@
       </div>
     </div>
 
-    <!-- Order detail -->
+    <!-- Order detail (standard) -->
     <div class="sub-screen" id="dealer-detail">
       <div class="phone-header">
         <button class="back-btn" onclick="switchTab('dealer','dashboard')">← Back</button>
@@ -297,6 +345,7 @@
           <div class="info-row"><span class="info-key">Customer</span><span class="info-val">Priya Mehta</span></div>
           <div class="info-row"><span class="info-key">Product</span><span class="info-val">uPVC sliding · 3 units</span></div>
           <div class="info-row"><span class="info-key">Booked on</span><span class="info-val">8 Apr 2025</span></div>
+          <div class="info-row"><span class="info-key">NPR</span><span class="info-val">No</span></div>
         </div>
         <div class="section-title">Lifecycle tracker</div>
         <div class="timeline">
@@ -331,6 +380,72 @@
       </div>
     </div>
 
+    <!-- NPR Order detail -->
+    <div class="sub-screen" id="dealer-npr-detail">
+      <div class="phone-header">
+        <button class="back-btn" onclick="switchTab('dealer','dashboard')">← Back</button>
+        <h2>ORD-2855</h2>
+        <span class="badge npr">NPR</span>
+      </div>
+      <div class="phone-body">
+        <div class="info-section">
+          <div class="info-row"><span class="info-key">Customer</span><span class="info-val">Rohit Saxena</span></div>
+          <div class="info-row"><span class="info-key">Product</span><span class="info-val">Custom aluminium bay window</span></div>
+          <div class="info-row"><span class="info-key">Creation date</span><span class="info-val">12 Apr 2025</span></div>
+          <div class="info-row"><span class="info-key">Current status</span><span class="badge npr">Under NPR review</span></div>
+          <div class="info-row"><span class="info-key">Process owner</span><span class="info-val" style="color:#4c1d95;font-weight:600">Ankit Gupta (Tech)</span></div>
+        </div>
+
+        <div class="section-title">NPR lifecycle tracker</div>
+        <div class="timeline">
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Submitted</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Doc check</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle npr-review">NPR</div><div class="tl-label">Tech review</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Approval</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Factory</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Dispatch</div></div>
+        </div>
+
+        <div class="npr-section">
+          <div class="npr-section-title"><span class="npr-tag">NPR</span> Non-Product Range details</div>
+          <div class="info-row"><span class="info-key">Request type</span><span class="info-val">Custom size + profile</span></div>
+          <div class="info-row"><span class="info-key">Dimensions</span><span class="info-val">2400 × 1800 mm (bay, 3-panel)</span></div>
+          <div class="info-row"><span class="info-key">Special requirement</span><span class="info-val">Curved sill, bronze anodised</span></div>
+          <div class="info-row"><span class="info-key">Review ETA</span><span class="info-val" style="color:#4c1d95;font-weight:600">20 Apr 2025</span></div>
+          <div class="info-row"><span class="info-key">Feasibility</span><span class="badge npr">Pending</span></div>
+          <div class="info-row"><span class="info-key">Est. premium</span><span class="info-val">+18% over standard</span></div>
+        </div>
+
+        <div class="npr-alert">
+          <div class="npr-alert-title">🔷 NPR approval in progress</div>
+          <div class="npr-row"><span class="npr-key">Assigned to</span><span class="npr-val">Ankit Gupta (Tech team)</span></div>
+          <div class="npr-row"><span class="npr-key">Submitted</span><span class="npr-val">12 Apr 2025</span></div>
+          <div class="npr-row"><span class="npr-key">Decision by</span><span class="npr-val">20 Apr 2025</span></div>
+          <div class="npr-row"><span class="npr-key">Days elapsed</span><span class="npr-val">5 days</span></div>
+        </div>
+
+        <button class="btn purple">📎 View NPR drawings</button>
+        <button class="escalate-btn">⚠ Escalate NPR to Sales Manager</button>
+        <button class="btn">Add note / query</button>
+
+        <div class="divider"></div>
+        <div class="section-title">NPR activity log</div>
+        <div class="esc-log">
+          <div class="esc-log-title">Submitted for NPR review · 12 Apr, 10:15</div>
+          <div class="esc-log-desc">Dealer Raj Sharma submitted custom product request. Assigned to Ankit Gupta.</div>
+        </div>
+        <div class="esc-log">
+          <div class="esc-log-title">Document verified · 13 Apr, 14:30</div>
+          <div class="esc-log-desc">Site drawings and customer specs verified. Moved to technical feasibility check.</div>
+        </div>
+      </div>
+    </div>
+
   </div></div>
 </div>
 
@@ -340,6 +455,7 @@
     <button class="screen-tab active" onclick="switchTab('sales','dashboard')">Dashboard</button>
     <button class="screen-tab" onclick="switchTab('sales','dealer-detail')">Dealer detail</button>
     <button class="screen-tab" onclick="switchTab('sales','order-detail')">Order detail</button>
+    <button class="screen-tab" onclick="switchTab('sales','npr-detail')">NPR detail</button>
     <button class="screen-tab" onclick="switchTab('sales','scorecard')">Scorecard</button>
   </div>
   <div class="phone-frame"><div class="phone">
@@ -352,24 +468,24 @@
           <div class="stat-card"><div class="lbl">Active dealers</div><div class="val">14</div></div>
           <div class="stat-card red"><div class="lbl">Total on hold</div><div class="val">23</div></div>
           <div class="stat-card amber"><div class="lbl">SLA breaches</div><div class="val">5</div></div>
-          <div class="stat-card"><div class="lbl">Escalations</div><div class="val">3</div></div>
+          <div class="stat-card purple"><div class="lbl">NPR pending</div><div class="val">6</div><div class="sub">Across dealers</div></div>
         </div>
         <div class="section-title">Dealers</div>
         <div class="dealer-card" onclick="switchTab('sales','dealer-detail')">
           <div class="dealer-name">Raj Sharma · New Delhi</div>
-          <div class="dealer-stats"><div class="d-stat">Orders: <span>42</span></div><div class="d-stat">Hold: <span class="red">7</span></div><div class="d-stat">Esc: <span class="red">2</span></div></div>
+          <div class="dealer-stats"><div class="d-stat">Orders: <span>45</span></div><div class="d-stat">Hold: <span class="red">7</span></div><div class="d-stat">NPR: <span class="purple">3</span></div><div class="d-stat">Esc: <span class="red">2</span></div></div>
         </div>
         <div class="dealer-card" onclick="switchTab('sales','dealer-detail')">
           <div class="dealer-name">Meena Builders · Gurgaon</div>
-          <div class="dealer-stats"><div class="d-stat">Orders: <span>31</span></div><div class="d-stat">Hold: <span class="red">5</span></div><div class="d-stat">Esc: <span>1</span></div></div>
+          <div class="dealer-stats"><div class="d-stat">Orders: <span>31</span></div><div class="d-stat">Hold: <span class="red">5</span></div><div class="d-stat">NPR: <span class="purple">2</span></div><div class="d-stat">Esc: <span>1</span></div></div>
         </div>
         <div class="dealer-card">
           <div class="dealer-name">Star Infra · Noida</div>
-          <div class="dealer-stats"><div class="d-stat">Orders: <span>28</span></div><div class="d-stat">Hold: <span>3</span></div><div class="d-stat">Esc: <span>0</span></div></div>
+          <div class="dealer-stats"><div class="d-stat">Orders: <span>28</span></div><div class="d-stat">Hold: <span>3</span></div><div class="d-stat">NPR: <span>1</span></div><div class="d-stat">Esc: <span>0</span></div></div>
         </div>
         <div class="dealer-card">
           <div class="dealer-name">Prime Constructions · Faridabad</div>
-          <div class="dealer-stats"><div class="d-stat">Orders: <span>19</span></div><div class="d-stat">Hold: <span class="red">8</span></div><div class="d-stat">Esc: <span>0</span></div></div>
+          <div class="dealer-stats"><div class="d-stat">Orders: <span>19</span></div><div class="d-stat">Hold: <span class="red">8</span></div><div class="d-stat">NPR: <span>0</span></div><div class="d-stat">Esc: <span>0</span></div></div>
         </div>
       </div>
     </div>
@@ -382,15 +498,34 @@
       </div>
       <div class="phone-body">
         <div class="stat-row">
-          <div class="stat-card"><div class="lbl">Total</div><div class="val">42</div></div>
+          <div class="stat-card"><div class="lbl">Total</div><div class="val">45</div></div>
           <div class="stat-card red"><div class="lbl">On hold</div><div class="val">7</div></div>
+          <div class="stat-card purple"><div class="lbl">NPR orders</div><div class="val">3</div></div>
+          <div class="stat-card amber"><div class="lbl">Delivered</div><div class="val">17</div></div>
         </div>
         <div class="filter-row">
           <button class="filter-chip active">All</button>
           <button class="filter-chip">On hold</button>
           <button class="filter-chip">Escalated</button>
+          <button class="filter-chip npr-chip">NPR</button>
         </div>
         <div class="section-title">Orders</div>
+
+        <!-- NPR order in dealer detail -->
+        <div class="order-card npr-card" onclick="switchTab('sales','npr-detail')">
+          <div class="order-row"><span class="order-id">ORD-2855</span><span class="badge npr">NPR</span></div>
+          <div class="order-customer">Rohit Saxena · Custom aluminium bay window</div>
+          <div class="order-meta">
+            <span>Created: 12 Apr</span>
+            <span>·</span>
+            <span style="color:#7c3aed;font-weight:600">Tech review</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid #f3f4f6;">
+            <span style="font-size:11px;color:#9ca3af;">Owner: <span style="color:#4c1d95;font-weight:600">Ankit Gupta</span></span>
+            <span class="sla-badge" style="background:#ede9fe;color:#4c1d95;">ETA 20 Apr</span>
+          </div>
+        </div>
+
         <div class="order-card on-hold" onclick="switchTab('sales','order-detail')">
           <div class="order-row"><span class="order-id">ORD-2841</span><span class="badge hold">On hold</span></div>
           <div class="order-customer">Priya Mehta · Technical review</div>
@@ -409,7 +544,7 @@
       </div>
     </div>
 
-    <!-- Order detail (Sales) -->
+    <!-- Order detail (Sales) — standard hold order -->
     <div class="sub-screen" id="sales-order-detail">
       <div class="phone-header">
         <button class="back-btn" onclick="switchTab('sales','dealer-detail')">← Back</button>
@@ -420,6 +555,7 @@
           <div class="info-row"><span class="info-key">Dealer</span><span class="info-val">Raj Sharma</span></div>
           <div class="info-row"><span class="info-key">Customer</span><span class="info-val">Priya Mehta</span></div>
           <div class="info-row"><span class="info-key">Product</span><span class="info-val">uPVC sliding · 3 units</span></div>
+          <div class="info-row"><span class="info-key">NPR</span><span class="info-val">No</span></div>
         </div>
         <div class="section-title">Lifecycle tracker</div>
         <div class="timeline">
@@ -451,6 +587,66 @@
       </div>
     </div>
 
+    <!-- NPR detail (Sales) -->
+    <div class="sub-screen" id="sales-npr-detail">
+      <div class="phone-header">
+        <button class="back-btn" onclick="switchTab('sales','dealer-detail')">← Back</button>
+        <h2>ORD-2855</h2><span class="badge npr">NPR</span>
+      </div>
+      <div class="phone-body">
+        <div class="info-section">
+          <div class="info-row"><span class="info-key">Dealer</span><span class="info-val">Raj Sharma</span></div>
+          <div class="info-row"><span class="info-key">Customer</span><span class="info-val">Rohit Saxena</span></div>
+          <div class="info-row"><span class="info-key">Product</span><span class="info-val">Custom aluminium bay window</span></div>
+          <div class="info-row"><span class="info-key">Creation date</span><span class="info-val">12 Apr 2025</span></div>
+          <div class="info-row"><span class="info-key">Current status</span><span class="badge npr">Under NPR review</span></div>
+          <div class="info-row"><span class="info-key">Process owner</span><span class="info-val" style="color:#4c1d95;font-weight:600">Ankit Gupta (Tech)</span></div>
+        </div>
+
+        <div class="section-title">NPR lifecycle tracker</div>
+        <div class="timeline">
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Submitted</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Doc check</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle npr-review">NPR</div><div class="tl-label">Tech review</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Approval</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Factory</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Dispatch</div></div>
+        </div>
+
+        <div class="npr-section">
+          <div class="npr-section-title"><span class="npr-tag">NPR</span> Non-Product Range details</div>
+          <div class="info-row"><span class="info-key">Request type</span><span class="info-val">Custom size + profile</span></div>
+          <div class="info-row"><span class="info-key">Dimensions</span><span class="info-val">2400 × 1800 mm (bay, 3-panel)</span></div>
+          <div class="info-row"><span class="info-key">Special req.</span><span class="info-val">Curved sill, bronze anodised</span></div>
+          <div class="info-row"><span class="info-key">Review ETA</span><span class="info-val" style="color:#4c1d95;font-weight:600">20 Apr 2025</span></div>
+          <div class="info-row"><span class="info-key">Feasibility</span><span class="badge npr">Pending</span></div>
+          <div class="info-row"><span class="info-key">Est. premium</span><span class="info-val">+18% over standard</span></div>
+        </div>
+
+        <div class="section-title">Sales actions</div>
+        <button class="btn purple">✅ Approve NPR request</button>
+        <button class="btn danger">✗ Reject NPR request</button>
+        <button class="btn">Reassign process owner</button>
+        <button class="btn">Add note</button>
+
+        <div class="divider"></div>
+        <div class="section-title">NPR activity log</div>
+        <div class="esc-log">
+          <div class="esc-log-title">Submitted for NPR review · 12 Apr, 10:15</div>
+          <div class="esc-log-desc">Dealer Raj Sharma submitted custom product request. Assigned to Ankit Gupta.</div>
+        </div>
+        <div class="esc-log">
+          <div class="esc-log-title">Document verified · 13 Apr, 14:30</div>
+          <div class="esc-log-desc">Site drawings and customer specs verified. Moved to technical feasibility check.</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scorecard -->
     <div class="sub-screen" id="sales-scorecard">
       <div class="phone-header"><h2>Dealer scorecard</h2></div>
@@ -459,10 +655,10 @@
           <select class="form-input"><option>Raj Sharma</option><option>Meena Builders</option><option>Star Infra</option></select>
         </div>
         <div class="score-row">
-          <div class="score-card"><div class="score-val">42</div><div class="score-label">Total orders</div></div>
-          <div class="score-card"><div class="score-val" style="color:#b91c1c">16.7%</div><div class="score-label">% on hold</div></div>
+          <div class="score-card"><div class="score-val">45</div><div class="score-label">Total orders</div></div>
+          <div class="score-card"><div class="score-val" style="color:#b91c1c">15.6%</div><div class="score-label">% on hold</div></div>
           <div class="score-card"><div class="score-val" style="color:#92400e">4.2d</div><div class="score-label">Avg resolution</div></div>
-          <div class="score-card"><div class="score-val" style="color:#b91c1c">2</div><div class="score-label">Escalations</div></div>
+          <div class="score-card"><div class="score-val" style="color:#6d28d9">3</div><div class="score-label">NPR orders</div></div>
         </div>
         <div class="section-title">Hold breakdown by stage</div>
         <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px">
@@ -470,11 +666,34 @@
           <tbody>
             <tr style="border-bottom:1px solid #f3f4f6"><td style="padding:7px 10px">Doc check</td><td style="padding:7px 8px;text-align:center">2</td><td style="padding:7px 8px;text-align:center;color:#92400e;font-weight:600">3.1d</td></tr>
             <tr style="border-bottom:1px solid #f3f4f6"><td style="padding:7px 10px">Technical</td><td style="padding:7px 8px;text-align:center">3</td><td style="padding:7px 8px;text-align:center;color:#b91c1c;font-weight:600">5.4d</td></tr>
-            <tr><td style="padding:7px 10px">Commercial</td><td style="padding:7px 8px;text-align:center">2</td><td style="padding:7px 8px;text-align:center">1.8d</td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6"><td style="padding:7px 10px">Commercial</td><td style="padding:7px 8px;text-align:center">2</td><td style="padding:7px 8px;text-align:center">1.8d</td></tr>
           </tbody>
         </table>
         <div class="section-title">NPR status</div>
-        <div class="order-card"><div class="order-row"><span class="order-id">ORD-2841 (NPR)</span><span class="badge progress">Under review</span></div><div class="order-customer">ETA for decision: 20 Apr</div></div>
+        <div class="order-card npr-card" onclick="switchTab('sales','npr-detail')">
+          <div class="order-row"><span class="order-id">ORD-2855 (NPR)</span><span class="badge npr">Under review</span></div>
+          <div class="order-customer">Rohit Saxena · Custom aluminium bay window</div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;">
+            <span style="font-size:11px;color:#9ca3af">Created: 12 Apr 2025</span>
+            <span style="font-size:11px;color:#4c1d95;font-weight:600">Owner: Ankit Gupta</span>
+          </div>
+        </div>
+        <div class="order-card npr-card">
+          <div class="order-row"><span class="order-id">ORD-2831 (NPR)</span><span class="badge npr-approved">Approved</span></div>
+          <div class="order-customer">Sneha Patel · Custom uPVC tilt-turn</div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;">
+            <span style="font-size:11px;color:#9ca3af">Created: 5 Apr 2025</span>
+            <span style="font-size:11px;color:#065f46;font-weight:600">Owner: Kiran Desai</span>
+          </div>
+        </div>
+        <div class="order-card npr-card">
+          <div class="order-row"><span class="order-id">ORD-2812 (NPR)</span><span class="badge npr-rejected">Rejected</span></div>
+          <div class="order-customer">Tarun Malik · Oversized sliding door</div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;">
+            <span style="font-size:11px;color:#9ca3af">Created: 28 Mar 2025</span>
+            <span style="font-size:11px;color:#7f1d1d;font-weight:600">Owner: Ankit Gupta</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -580,7 +799,7 @@
         <div class="track-alert">
           <div class="track-alert-title">Your order needs attention</div>
           <div class="track-alert-desc">A document is missing. Please upload your site drawing to resume processing.</div>
-          <button class="btn warn" style="margin-top:10px;padding:7px;font-size:12px" onclick="document.querySelector('#customer-documents').classList.add('active')">Upload document →</button>
+          <button class="btn warn" style="margin-top:10px;padding:7px;font-size:12px" onclick="switchTab('customer','documents')">Upload document →</button>
         </div>
       </div>
     </div>
