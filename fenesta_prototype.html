@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fenesta — Order Lifecycle Prototype</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+  /* TOP BAR */
+  .top-bar { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .top-bar h1 { font-size: 15px; font-weight: 600; color: #111; }
+  .role-switcher { display: flex; gap: 4px; }
+  .role-btn { font-size: 12px; padding: 5px 14px; border: 1px solid #d1d5db; border-radius: 20px; background: transparent; color: #6b7280; cursor: pointer; transition: all .15s; font-weight: 500; }
+  .role-btn.active { background: #111; color: #fff; border-color: #111; }
+
+  /* LAYOUT */
+  .screen { display: none; flex-direction: column; }
+  .screen.active { display: flex; }
+  .screen-nav { display: flex; gap: 6px; padding: 12px 20px 0; overflow-x: auto; scrollbar-width: none; background: #f0f2f5; }
+  .screen-nav::-webkit-scrollbar { display: none; }
+  .screen-tab { font-size: 12px; padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 20px; white-space: nowrap; cursor: pointer; background: #fff; color: #6b7280; flex-shrink: 0; transition: all .15s; font-weight: 500; }
+  .screen-tab.active { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+  .phone-frame { flex: 1; padding: 16px 20px; display: flex; justify-content: center; }
+  .phone { width: 100%; max-width: 400px; background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+  .sub-screen { display: none; }
+  .sub-screen.active { display: block; }
+
+  /* PHONE HEADER */
+  .phone-header { background: #fff; border-bottom: 1px solid #f3f4f6; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .phone-header h2 { font-size: 15px; font-weight: 600; color: #111; }
+  .back-btn { font-size: 12px; color: #1d4ed8; cursor: pointer; padding: 2px 6px; border-radius: 4px; border: none; background: none; font-weight: 500; }
+  .phone-body { padding: 16px; overflow-y: auto; max-height: calc(100vh - 200px); }
+
+  /* STAT CARDS */
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: #f9fafb; border-radius: 10px; padding: 12px 14px; }
+  .stat-card .lbl { font-size: 11px; color: #6b7280; margin-bottom: 4px; }
+  .stat-card .val { font-size: 24px; font-weight: 700; color: #111; line-height: 1; }
+  .stat-card .sub { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+  .stat-card.red .val { color: #b91c1c; }
+  .stat-card.amber .val { color: #92400e; }
+
+  /* BADGES */
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; display: inline-block; }
+  .badge.hold { background: #fee2e2; color: #7f1d1d; }
+  .badge.progress { background: #fef3c7; color: #78350f; }
+  .badge.done { background: #dcfce7; color: #14532d; }
+  .badge.draft { background: #f3f4f6; color: #6b7280; }
+
+  /* ORDER CARDS */
+  .section-title { font-size: 11px; font-weight: 600; color: #9ca3af; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+  .order-card { border: 1px solid #f3f4f6; border-radius: 10px; padding: 11px 13px; margin-bottom: 9px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+  .order-card:hover { border-color: #d1d5db; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  .order-card.on-hold { border-left: 3px solid #ef4444; }
+  .order-card.in-progress { border-left: 3px solid #f59e0b; }
+  .order-card.completed { border-left: 3px solid #22c55e; }
+  .order-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .order-id { font-size: 13px; font-weight: 600; color: #111; }
+  .order-customer { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+  .order-meta { display: flex; gap: 6px; align-items: center; font-size: 11px; color: #9ca3af; }
+
+  /* TIMELINE */
+  .timeline { display: flex; align-items: center; overflow-x: auto; padding: 4px 0 10px; scrollbar-width: none; margin-bottom: 14px; }
+  .timeline::-webkit-scrollbar { display: none; }
+  .tl-stage { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .tl-circle { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border: 2px solid transparent; }
+  .tl-circle.done { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .tl-circle.hold { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
+  .tl-circle.pending { background: #f9fafb; color: #9ca3af; border-color: #e5e7eb; }
+  .tl-circle.active { background: #fef3c7; color: #78350f; border-color: #fcd34d; }
+  .tl-label { font-size: 9px; color: #9ca3af; margin-top: 4px; white-space: nowrap; max-width: 46px; text-align: center; line-height: 1.2; }
+  .tl-connector { flex: 1; height: 2px; background: #e5e7eb; min-width: 10px; flex-shrink: 0; }
+  .tl-connector.done { background: #86efac; }
+
+  /* HOLD ALERT */
+  .hold-alert { background: #fff5f5; border: 1px solid #fecaca; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+  .hold-alert-title { font-size: 13px; font-weight: 600; color: #7f1d1d; margin-bottom: 8px; }
+  .hold-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .hold-key { font-size: 11px; color: #ef4444; }
+  .hold-val { font-size: 11px; color: #7f1d1d; font-weight: 600; }
+
+  /* INFO ROWS */
+  .info-section { margin-bottom: 14px; }
+  .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f9fafb; }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { font-size: 12px; color: #9ca3af; }
+  .info-val { font-size: 12px; color: #111; font-weight: 500; }
+
+  /* BUTTONS */
+  .btn { width: 100%; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #e5e7eb; background: transparent; color: #111; margin-bottom: 8px; transition: all .15s; }
+  .btn:hover { background: #f9fafb; }
+  .btn.primary { background: #111; color: #fff; border-color: #111; }
+  .btn.primary:hover { background: #374151; }
+  .btn.danger { background: #fff5f5; color: #7f1d1d; border-color: #fecaca; }
+  .btn.danger:hover { background: #fee2e2; }
+  .btn.warn { background: #fffbeb; color: #78350f; border-color: #fcd34d; }
+
+  /* FORM */
+  .form-group { margin-bottom: 12px; }
+  .form-label { font-size: 11px; color: #6b7280; margin-bottom: 5px; font-weight: 500; }
+  .form-input { width: 100%; padding: 9px 11px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; color: #111; background: #fff; }
+  .form-input:focus { outline: none; border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(147,197,253,.2); }
+  .form-input.readonly { background: #f9fafb; color: #6b7280; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+  .toggle-pill { width: 38px; height: 22px; background: #e5e7eb; border-radius: 11px; cursor: pointer; position: relative; transition: background .2s; }
+  .toggle-pill.on { background: #2563eb; }
+  .toggle-pill::after { content:''; width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:3px; left:3px; transition:left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .toggle-pill.on::after { left:19px; }
+
+  /* ESCALATE */
+  .escalate-btn { background: #fffbeb; color: #78350f; border: 1px solid #fcd34d; border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; width: 100%; }
+
+  /* DEALER CARDS */
+  .dealer-card { border: 1px solid #f3f4f6; border-radius: 10px; padding: 12px 14px; margin-bottom: 9px; cursor: pointer; transition: all .15s; }
+  .dealer-card:hover { border-color: #d1d5db; }
+  .dealer-name { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 7px; }
+  .dealer-stats { display: flex; gap: 14px; }
+  .d-stat { font-size: 11px; color: #9ca3af; }
+  .d-stat span { font-weight: 600; color: #111; }
+  .d-stat .red { color: #b91c1c; }
+
+  /* SCORECARD */
+  .score-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .score-card { background: #f9fafb; border-radius: 10px; padding: 12px; text-align: center; }
+  .score-val { font-size: 22px; font-weight: 700; color: #111; }
+  .score-label { font-size: 10px; color: #9ca3af; margin-top: 3px; }
+
+  /* PRODUCT SPEC */
+  .product-spec { background: #f9fafb; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+  .spec-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .spec-key { font-size: 12px; color: #9ca3af; }
+  .spec-val { font-size: 12px; color: #111; font-weight: 500; }
+
+  /* PAYMENT */
+  .payment-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f3f4f6; }
+
+  /* DOCS */
+  .doc-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+  .doc-name { font-size: 13px; color: #111; font-weight: 500; }
+  .doc-status { font-size: 11px; margin-top: 2px; }
+
+  /* CHAT */
+  .chat-area { padding: 0 0 8px; min-height: 200px; }
+  .chat-bubble { background: #f3f4f6; border-radius: 12px 12px 12px 3px; padding: 9px 12px; font-size: 12px; color: #111; margin-bottom: 8px; max-width: 87%; line-height: 1.5; }
+  .chat-bubble.user { background: #dbeafe; border-radius: 12px 12px 3px 12px; margin-left: auto; }
+  .chat-input-row { border-top: 1px solid #f3f4f6; padding-top: 10px; display: flex; gap: 8px; }
+
+  /* FILTER */
+  .filter-row { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-chip { font-size: 11px; padding: 5px 12px; border: 1px solid #e5e7eb; border-radius: 20px; white-space: nowrap; cursor: pointer; background: #fff; color: #6b7280; font-weight: 500; }
+  .filter-chip.active { background: #f3f4f6; color: #111; border-color: #d1d5db; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: #f3f4f6; margin: 14px 0; }
+  .note { font-size: 11px; color: #9ca3af; font-style: italic; margin-bottom: 10px; }
+
+  /* SLA */
+  .sla-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: #fef3c7; color: #78350f; font-weight: 600; }
+  .sla-badge.breach { background: #fee2e2; color: #7f1d1d; }
+
+  /* ESCALATION LOG */
+  .esc-log { border: 1px solid #f3f4f6; border-radius: 10px; padding: 11px; margin-bottom: 12px; }
+  .esc-log-title { font-size: 12px; font-weight: 600; color: #111; margin-bottom: 3px; }
+  .esc-log-desc { font-size: 11px; color: #6b7280; }
+
+  /* TRACKING ALERT */
+  .track-alert { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 12px 14px; margin-top: 8px; }
+  .track-alert-title { font-size: 12px; font-weight: 600; color: #78350f; margin-bottom: 5px; }
+  .track-alert-desc { font-size: 11px; color: #92400e; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>Fenesta — Order Lifecycle</h1>
+  <div class="role-switcher">
+    <button class="role-btn active" onclick="switchRole('dealer')">Dealer</button>
+    <button class="role-btn" onclick="switchRole('sales')">Sales</button>
+    <button class="role-btn" onclick="switchRole('customer')">Customer</button>
+  </div>
+</div>
+
+<!-- ═══════════════ DEALER ═══════════════ -->
+<div class="screen active" id="screen-dealer">
+  <div class="screen-nav">
+    <button class="screen-tab active" onclick="switchTab('dealer','dashboard')">Dashboard</button>
+    <button class="screen-tab" onclick="switchTab('dealer','opportunity')">New opportunity</button>
+    <button class="screen-tab" onclick="switchTab('dealer','booking')">Order booking</button>
+    <button class="screen-tab" onclick="switchTab('dealer','detail')">Order detail</button>
+  </div>
+  <div class="phone-frame"><div class="phone">
+
+    <!-- Dashboard -->
+    <div class="sub-screen active" id="dealer-dashboard">
+      <div class="phone-header"><h2>My orders</h2><span style="font-size:12px;color:#9ca3af">Raj Sharma</span></div>
+      <div class="phone-body">
+        <div class="stat-row">
+          <div class="stat-card"><div class="lbl">Total orders</div><div class="val">42</div></div>
+          <div class="stat-card red"><div class="lbl">On hold</div><div class="val">7</div><div class="sub">Action needed</div></div>
+          <div class="stat-card amber"><div class="lbl">In progress</div><div class="val">18</div></div>
+          <div class="stat-card"><div class="lbl">Delivered</div><div class="val">17</div></div>
+        </div>
+        <div class="filter-row">
+          <button class="filter-chip active">All</button>
+          <button class="filter-chip">On hold</button>
+          <button class="filter-chip">In progress</button>
+          <button class="filter-chip">Delivered</button>
+          <button class="filter-chip">This month</button>
+        </div>
+        <div class="section-title">Orders</div>
+        <div class="order-card on-hold" onclick="switchTab('dealer','detail')">
+          <div class="order-row"><span class="order-id">ORD-2841</span><span class="badge hold">On hold</span></div>
+          <div class="order-customer">Priya Mehta · uPVC sliding</div>
+          <div class="order-meta"><span>Technical review</span><span>· ETA pending</span></div>
+        </div>
+        <div class="order-card on-hold">
+          <div class="order-row"><span class="order-id">ORD-2796</span><span class="badge hold">On hold</span></div>
+          <div class="order-customer">Amit Verma · Aluminium casement</div>
+          <div class="order-meta"><span>Document check</span><span>· ETA pending</span></div>
+        </div>
+        <div class="order-card in-progress" onclick="switchTab('dealer','detail')">
+          <div class="order-row"><span class="order-id">ORD-2834</span><span class="badge progress">In progress</span></div>
+          <div class="order-customer">Sunita Rao · uPVC fixed</div>
+          <div class="order-meta"><span>Factory</span><span>· ETA 28 Apr</span></div>
+        </div>
+        <div class="order-card in-progress">
+          <div class="order-row"><span class="order-id">ORD-2819</span><span class="badge progress">In progress</span></div>
+          <div class="order-customer">Dev Kapoor · Sliding door</div>
+          <div class="order-meta"><span>Commercial</span><span>· ETA 22 Apr</span></div>
+        </div>
+        <div class="order-card completed">
+          <div class="order-row"><span class="order-id">ORD-2801</span><span class="badge done">Delivered</span></div>
+          <div class="order-customer">Neha Joshi · uPVC tilt &amp; turn</div>
+          <div class="order-meta"><span>Dispatch complete · 10 Apr</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opportunity creation -->
+    <div class="sub-screen" id="dealer-opportunity">
+      <div class="phone-header"><h2>New opportunity</h2></div>
+      <div class="phone-body">
+        <div class="section-title">Customer details</div>
+        <div class="form-group"><div class="form-label">Full name</div><input class="form-input" placeholder="e.g. Priya Mehta" /></div>
+        <div class="form-group"><div class="form-label">Phone</div><input class="form-input" placeholder="+91 98XXXXXXXX" /></div>
+        <div class="form-group"><div class="form-label">Address</div><input class="form-input" placeholder="Site / delivery address" /></div>
+        <div class="divider"></div>
+        <div class="section-title">Project details</div>
+        <div class="form-group"><div class="form-label">Product type</div>
+          <select class="form-input"><option>uPVC windows</option><option>Aluminium windows</option><option>Sliding doors</option><option>Casement</option></select></div>
+        <div class="form-group"><div class="form-label">Estimated quantity</div><input class="form-input" placeholder="No. of units" /></div>
+        <div class="form-group"><div class="form-label">Notes</div><input class="form-input" placeholder="Site requirements, preferences…" /></div>
+        <button class="btn">Save as draft</button>
+        <button class="btn primary">Convert to order →</button>
+      </div>
+    </div>
+
+    <!-- Order booking -->
+    <div class="sub-screen" id="dealer-booking">
+      <div class="phone-header"><h2>Order booking</h2></div>
+      <div class="phone-body">
+        <div class="section-title">Customer (auto-filled)</div>
+        <div class="form-group"><div class="form-label">Name</div><input class="form-input readonly" value="Priya Mehta" readonly /></div>
+        <div class="form-group"><div class="form-label">Phone</div><input class="form-input readonly" value="+91 98001 23456" readonly /></div>
+        <div class="form-group"><div class="form-label">Address</div><input class="form-input readonly" value="B-14, Sector 62, Noida" readonly /></div>
+        <div class="divider"></div>
+        <div class="section-title">Product details</div>
+        <div class="form-group"><div class="form-label">Category</div><select class="form-input"><option>uPVC</option><option>Aluminium</option></select></div>
+        <div class="form-group"><div class="form-label">Width × Height (mm)</div><input class="form-input" placeholder="e.g. 1200 × 1500" /></div>
+        <div class="form-group"><div class="form-label">Colour</div><input class="form-input" placeholder="e.g. White, Woodgrain" /></div>
+        <div class="divider"></div>
+        <div class="toggle-row">
+          <span style="font-size:13px;font-weight:500">Custom product (NPR)</span>
+          <div class="toggle-pill" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-title">Document upload</div>
+        <div class="doc-item"><div><div class="doc-name">Site plan / drawing</div></div><button class="btn" style="width:auto;padding:5px 12px;margin:0;font-size:12px">Upload</button></div>
+        <div class="doc-item"><div><div class="doc-name">Customer ID proof</div></div><button class="btn" style="width:auto;padding:5px 12px;margin:0;font-size:12px">Upload</button></div>
+        <div style="height:14px"></div>
+        <button class="btn primary">Submit order</button>
+      </div>
+    </div>
+
+    <!-- Order detail -->
+    <div class="sub-screen" id="dealer-detail">
+      <div class="phone-header">
+        <button class="back-btn" onclick="switchTab('dealer','dashboard')">← Back</button>
+        <h2>ORD-2841</h2>
+        <span class="badge hold">On hold</span>
+      </div>
+      <div class="phone-body">
+        <div class="info-section">
+          <div class="info-row"><span class="info-key">Customer</span><span class="info-val">Priya Mehta</span></div>
+          <div class="info-row"><span class="info-key">Product</span><span class="info-val">uPVC sliding · 3 units</span></div>
+          <div class="info-row"><span class="info-key">Booked on</span><span class="info-val">8 Apr 2025</span></div>
+        </div>
+        <div class="section-title">Lifecycle tracker</div>
+        <div class="timeline">
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Doc check</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Commercial</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle hold">!</div><div class="tl-label">Technical</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Release</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Factory</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Dispatch</div></div>
+        </div>
+        <div class="hold-alert">
+          <div class="hold-alert-title">⚠ Hold at Technical review</div>
+          <div class="hold-row"><span class="hold-key">Reason</span><span class="hold-val">Missing site drawing</span></div>
+          <div class="hold-row"><span class="hold-key">Owner</span><span class="hold-val">Kiran Desai (CCC)</span></div>
+          <div class="hold-row"><span class="hold-key">Resolve by</span><span class="hold-val">19 Apr 2025</span></div>
+          <div class="hold-row"><span class="hold-key">Stuck</span><span class="hold-val" style="color:#b91c1c">3 days</span></div>
+        </div>
+        <button class="escalate-btn">⚠ Escalate to Sales Manager</button>
+        <button class="btn danger">Upload missing document</button>
+        <button class="btn">Edit flagged fields</button>
+        <div class="divider"></div>
+        <div class="section-title">Stage detail — Technical</div>
+        <div class="info-row"><span class="info-key">Status</span><span class="badge hold">Hold</span></div>
+        <div class="info-row"><span class="info-key">Entered</span><span class="info-val">14 Apr 2025</span></div>
+        <div class="info-row"><span class="info-key">Owner</span><span class="info-val">Kiran Desai</span></div>
+        <div class="info-row"><span class="info-key">SLA deadline</span><span class="info-val">19 Apr 2025</span></div>
+      </div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ═══════════════ SALES ═══════════════ -->
+<div class="screen" id="screen-sales">
+  <div class="screen-nav">
+    <button class="screen-tab active" onclick="switchTab('sales','dashboard')">Dashboard</button>
+    <button class="screen-tab" onclick="switchTab('sales','dealer-detail')">Dealer detail</button>
+    <button class="screen-tab" onclick="switchTab('sales','order-detail')">Order detail</button>
+    <button class="screen-tab" onclick="switchTab('sales','scorecard')">Scorecard</button>
+  </div>
+  <div class="phone-frame"><div class="phone">
+
+    <!-- Sales Dashboard -->
+    <div class="sub-screen active" id="sales-dashboard">
+      <div class="phone-header"><h2>Sales overview</h2><span style="font-size:12px;color:#9ca3af">Vinay Agarwal</span></div>
+      <div class="phone-body">
+        <div class="stat-row">
+          <div class="stat-card"><div class="lbl">Active dealers</div><div class="val">14</div></div>
+          <div class="stat-card red"><div class="lbl">Total on hold</div><div class="val">23</div></div>
+          <div class="stat-card amber"><div class="lbl">SLA breaches</div><div class="val">5</div></div>
+          <div class="stat-card"><div class="lbl">Escalations</div><div class="val">3</div></div>
+        </div>
+        <div class="section-title">Dealers</div>
+        <div class="dealer-card" onclick="switchTab('sales','dealer-detail')">
+          <div class="dealer-name">Raj Sharma · New Delhi</div>
+          <div class="dealer-stats"><div class="d-stat">Orders: <span>42</span></div><div class="d-stat">Hold: <span class="red">7</span></div><div class="d-stat">Esc: <span class="red">2</span></div></div>
+        </div>
+        <div class="dealer-card" onclick="switchTab('sales','dealer-detail')">
+          <div class="dealer-name">Meena Builders · Gurgaon</div>
+          <div class="dealer-stats"><div class="d-stat">Orders: <span>31</span></div><div class="d-stat">Hold: <span class="red">5</span></div><div class="d-stat">Esc: <span>1</span></div></div>
+        </div>
+        <div class="dealer-card">
+          <div class="dealer-name">Star Infra · Noida</div>
+          <div class="dealer-stats"><div class="d-stat">Orders: <span>28</span></div><div class="d-stat">Hold: <span>3</span></div><div class="d-stat">Esc: <span>0</span></div></div>
+        </div>
+        <div class="dealer-card">
+          <div class="dealer-name">Prime Constructions · Faridabad</div>
+          <div class="dealer-stats"><div class="d-stat">Orders: <span>19</span></div><div class="d-stat">Hold: <span class="red">8</span></div><div class="d-stat">Esc: <span>0</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dealer detail (Sales) -->
+    <div class="sub-screen" id="sales-dealer-detail">
+      <div class="phone-header">
+        <button class="back-btn" onclick="switchTab('sales','dashboard')">← Back</button>
+        <h2>Raj Sharma</h2>
+      </div>
+      <div class="phone-body">
+        <div class="stat-row">
+          <div class="stat-card"><div class="lbl">Total</div><div class="val">42</div></div>
+          <div class="stat-card red"><div class="lbl">On hold</div><div class="val">7</div></div>
+        </div>
+        <div class="filter-row">
+          <button class="filter-chip active">All</button>
+          <button class="filter-chip">On hold</button>
+          <button class="filter-chip">Escalated</button>
+        </div>
+        <div class="section-title">Orders</div>
+        <div class="order-card on-hold" onclick="switchTab('sales','order-detail')">
+          <div class="order-row"><span class="order-id">ORD-2841</span><span class="badge hold">On hold</span></div>
+          <div class="order-customer">Priya Mehta · Technical review</div>
+          <div class="order-meta"><span>3 days stuck</span><span class="sla-badge breach" style="margin-left:auto">SLA breach</span></div>
+        </div>
+        <div class="order-card on-hold">
+          <div class="order-row"><span class="order-id">ORD-2796</span><span class="badge hold">On hold</span></div>
+          <div class="order-customer">Amit Verma · Doc check</div>
+          <div class="order-meta"><span>1 day stuck</span><span class="sla-badge" style="margin-left:auto">Within SLA</span></div>
+        </div>
+        <div class="order-card in-progress">
+          <div class="order-row"><span class="order-id">ORD-2834</span><span class="badge progress">In progress</span></div>
+          <div class="order-customer">Sunita Rao · Factory</div>
+          <div class="order-meta"><span>ETA 28 Apr</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order detail (Sales) -->
+    <div class="sub-screen" id="sales-order-detail">
+      <div class="phone-header">
+        <button class="back-btn" onclick="switchTab('sales','dealer-detail')">← Back</button>
+        <h2>ORD-2841</h2><span class="badge hold">On hold</span>
+      </div>
+      <div class="phone-body">
+        <div class="info-section">
+          <div class="info-row"><span class="info-key">Dealer</span><span class="info-val">Raj Sharma</span></div>
+          <div class="info-row"><span class="info-key">Customer</span><span class="info-val">Priya Mehta</span></div>
+          <div class="info-row"><span class="info-key">Product</span><span class="info-val">uPVC sliding · 3 units</span></div>
+        </div>
+        <div class="section-title">Lifecycle tracker</div>
+        <div class="timeline">
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Doc check</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Commercial</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle hold">!</div><div class="tl-label">Technical</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Release</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Factory</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Dispatch</div></div>
+        </div>
+        <div class="hold-alert">
+          <div class="hold-alert-title">Hold — 3 days · SLA breached</div>
+          <div class="hold-row"><span class="hold-key">Reason</span><span class="hold-val">Missing site drawing</span></div>
+          <div class="hold-row"><span class="hold-key">Owner</span><span class="hold-val">Kiran Desai (CCC)</span></div>
+          <div class="hold-row"><span class="hold-key">SLA was</span><span class="hold-val" style="color:#b91c1c">19 Apr — BREACHED</span></div>
+        </div>
+        <div class="section-title">Escalation history</div>
+        <div class="esc-log">
+          <div class="esc-log-title">Auto-escalated · 17 Apr, 11:02</div>
+          <div class="esc-log-desc">System triggered after 3-day rule. Assigned to Vinay Agarwal (Sales Mgr).</div>
+        </div>
+        <button class="btn danger">Reassign owner</button>
+        <button class="btn">Add note</button>
+      </div>
+    </div>
+
+    <!-- Scorecard -->
+    <div class="sub-screen" id="sales-scorecard">
+      <div class="phone-header"><h2>Dealer scorecard</h2></div>
+      <div class="phone-body">
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <select class="form-input"><option>Raj Sharma</option><option>Meena Builders</option><option>Star Infra</option></select>
+        </div>
+        <div class="score-row">
+          <div class="score-card"><div class="score-val">42</div><div class="score-label">Total orders</div></div>
+          <div class="score-card"><div class="score-val" style="color:#b91c1c">16.7%</div><div class="score-label">% on hold</div></div>
+          <div class="score-card"><div class="score-val" style="color:#92400e">4.2d</div><div class="score-label">Avg resolution</div></div>
+          <div class="score-card"><div class="score-val" style="color:#b91c1c">2</div><div class="score-label">Escalations</div></div>
+        </div>
+        <div class="section-title">Hold breakdown by stage</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px">
+          <thead><tr style="background:#f9fafb"><th style="text-align:left;padding:7px 10px;font-size:11px;color:#9ca3af;font-weight:600;border-bottom:1px solid #f3f4f6">Stage</th><th style="padding:7px 8px;font-size:11px;color:#9ca3af;font-weight:600;border-bottom:1px solid #f3f4f6">Holds</th><th style="padding:7px 8px;font-size:11px;color:#9ca3af;font-weight:600;border-bottom:1px solid #f3f4f6">Avg days</th></tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #f3f4f6"><td style="padding:7px 10px">Doc check</td><td style="padding:7px 8px;text-align:center">2</td><td style="padding:7px 8px;text-align:center;color:#92400e;font-weight:600">3.1d</td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6"><td style="padding:7px 10px">Technical</td><td style="padding:7px 8px;text-align:center">3</td><td style="padding:7px 8px;text-align:center;color:#b91c1c;font-weight:600">5.4d</td></tr>
+            <tr><td style="padding:7px 10px">Commercial</td><td style="padding:7px 8px;text-align:center">2</td><td style="padding:7px 8px;text-align:center">1.8d</td></tr>
+          </tbody>
+        </table>
+        <div class="section-title">NPR status</div>
+        <div class="order-card"><div class="order-row"><span class="order-id">ORD-2841 (NPR)</span><span class="badge progress">Under review</span></div><div class="order-customer">ETA for decision: 20 Apr</div></div>
+      </div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ═══════════════ CUSTOMER ═══════════════ -->
+<div class="screen" id="screen-customer">
+  <div class="screen-nav">
+    <button class="screen-tab active" onclick="switchTab('customer','dashboard')">My orders</button>
+    <button class="screen-tab" onclick="switchTab('customer','order-detail')">Order detail</button>
+    <button class="screen-tab" onclick="switchTab('customer','documents')">Documents</button>
+    <button class="screen-tab" onclick="switchTab('customer','tracking')">Tracking</button>
+    <button class="screen-tab" onclick="switchTab('customer','support')">Support</button>
+  </div>
+  <div class="phone-frame"><div class="phone">
+
+    <!-- Customer dashboard -->
+    <div class="sub-screen active" id="customer-dashboard">
+      <div class="phone-header"><h2>My orders</h2><span style="font-size:12px;color:#9ca3af">Priya Mehta</span></div>
+      <div class="phone-body">
+        <div class="order-card on-hold" onclick="switchTab('customer','order-detail')">
+          <div class="order-row"><span class="order-id">ORD-2841</span><span class="badge hold">Delayed</span></div>
+          <div class="order-customer">uPVC sliding windows · 3 units</div>
+          <div class="order-meta"><span>In review · ETA to be updated</span></div>
+        </div>
+        <div class="order-card completed">
+          <div class="order-row"><span class="order-id">ORD-2709</span><span class="badge done">Delivered</span></div>
+          <div class="order-customer">uPVC fixed windows · 2 units</div>
+          <div class="order-meta"><span>Delivered 2 Feb 2025</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer order detail -->
+    <div class="sub-screen" id="customer-order-detail">
+      <div class="phone-header">
+        <button class="back-btn" onclick="switchTab('customer','dashboard')">← Back</button>
+        <h2>ORD-2841</h2>
+      </div>
+      <div class="phone-body">
+        <div class="section-title">Product details</div>
+        <div class="product-spec">
+          <div class="spec-row"><span class="spec-key">Category</span><span class="spec-val">uPVC sliding</span></div>
+          <div class="spec-row"><span class="spec-key">Size</span><span class="spec-val">1200 × 1500 mm</span></div>
+          <div class="spec-row"><span class="spec-key">Colour</span><span class="spec-val">White</span></div>
+          <div class="spec-row"><span class="spec-key">Hardware</span><span class="spec-val">Standard</span></div>
+          <div class="spec-row"><span class="spec-key">Glass</span><span class="spec-val">5mm toughened</span></div>
+          <div class="spec-row"><span class="spec-key">Qty</span><span class="spec-val">3 units</span></div>
+        </div>
+        <div class="section-title">Delivery</div>
+        <div class="info-row"><span class="info-key">Status</span><span class="badge hold">Delayed</span></div>
+        <div class="info-row"><span class="info-key">ETA</span><span class="info-val">To be updated</span></div>
+        <div class="info-row"><span class="info-key">Address</span><span class="info-val">B-14, Sector 62, Noida</span></div>
+        <div class="divider"></div>
+        <div class="section-title">Payment</div>
+        <div class="payment-row"><span class="info-key">Total amount</span><span class="info-val" style="font-weight:600">₹1,42,500</span></div>
+        <div class="payment-row"><span class="info-key">Paid (advance)</span><span class="info-val" style="color:#166534;font-weight:600">₹71,250 · 10 Apr</span></div>
+        <div class="payment-row"><span class="info-key">Balance due</span><span class="info-val">₹71,250 (on delivery)</span></div>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="sub-screen" id="customer-documents">
+      <div class="phone-header"><h2>Documents</h2></div>
+      <div class="phone-body">
+        <div class="note">Upload or verify documents for ORD-2841</div>
+        <div class="doc-item">
+          <div><div class="doc-name">Site plan / drawing</div><div class="doc-status" style="color:#b91c1c">Not uploaded — required</div></div>
+          <button class="btn danger" style="width:auto;padding:6px 12px;margin:0;font-size:12px">Upload</button>
+        </div>
+        <div class="doc-item">
+          <div><div class="doc-name">Customer ID proof</div><div class="doc-status" style="color:#166534">Verified ✓</div></div>
+          <span class="badge done">Verified</span>
+        </div>
+        <div class="doc-item">
+          <div><div class="doc-name">Payment receipt</div><div class="doc-status" style="color:#166534">Verified ✓</div></div>
+          <span class="badge done">Verified</span>
+        </div>
+        <div class="doc-item">
+          <div><div class="doc-name">Order confirmation</div><div class="doc-status" style="color:#92400e">Pending review</div></div>
+          <span class="badge progress">Pending</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tracking -->
+    <div class="sub-screen" id="customer-tracking">
+      <div class="phone-header"><h2>Order tracking</h2></div>
+      <div class="phone-body">
+        <div style="font-size:12px;color:#9ca3af;margin-bottom:14px">ORD-2841 · uPVC sliding windows</div>
+        <div class="timeline">
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Booked</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle done">✓</div><div class="tl-label">Verified</div></div>
+          <div class="tl-connector done"></div>
+          <div class="tl-stage"><div class="tl-circle hold">!</div><div class="tl-label">In review</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Production</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-stage"><div class="tl-circle pending">—</div><div class="tl-label">Dispatched</div></div>
+        </div>
+        <div class="track-alert">
+          <div class="track-alert-title">Your order needs attention</div>
+          <div class="track-alert-desc">A document is missing. Please upload your site drawing to resume processing.</div>
+          <button class="btn warn" style="margin-top:10px;padding:7px;font-size:12px" onclick="document.querySelector('#customer-documents').classList.add('active')">Upload document →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Support chatbot -->
+    <div class="sub-screen" id="customer-support">
+      <div class="phone-header"><h2>Support</h2><span style="font-size:11px;color:#16a34a;font-weight:600">● Online</span></div>
+      <div class="phone-body" style="display:flex;flex-direction:column;">
+        <div class="chat-area">
+          <div class="chat-bubble">Hi Priya! How can I help you today?</div>
+          <div class="chat-bubble user">What's the status of my order ORD-2841?</div>
+          <div class="chat-bubble">Your order is currently on hold at the technical review stage. The hold reason is a missing site drawing. You can upload it from the Documents screen to resume processing. Would you like me to take you there?</div>
+          <div class="chat-bubble user">When will it be delivered?</div>
+          <div class="chat-bubble">Once the document is uploaded, the review typically takes 2–3 working days. After that your order will move to production. I'll update the ETA as soon as the hold is cleared.</div>
+        </div>
+        <div class="chat-input-row">
+          <input class="form-input" placeholder="Type a message…" style="flex:1" />
+          <button class="btn primary" style="width:auto;padding:9px 16px;margin:0">Send</button>
+        </div>
+        <div style="padding-top:8px">
+          <button class="btn warn" style="font-size:12px;padding:8px">Escalate to human agent</button>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+</div>
+
+<script>
+function switchRole(role) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + role).classList.add('active');
+  const firstTab = document.querySelector('#screen-' + role + ' .screen-tab');
+  if (firstTab) firstTab.click();
+}
+function switchTab(role, tab) {
+  const screen = document.getElementById('screen-' + role);
+  screen.querySelectorAll('.screen-tab').forEach(b => b.classList.remove('active'));
+  screen.querySelectorAll('.sub-screen').forEach(s => s.classList.remove('active'));
+  const tabBtn = Array.from(screen.querySelectorAll('.screen-tab')).find(b =>
+    b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+tab+"'")
+  );
+  if (tabBtn) tabBtn.classList.add('active');
+  const sub = document.getElementById(role + '-' + tab);
+  if (sub) sub.classList.add('active');
+}
+</script>
+</body>
+</html>
